@@ -17,12 +17,22 @@ const promotionSchema = new Schema({
         type: String,
         required: true
     },
-    designation:{
+    category:{
         type: String,
         required: true
     },
-    abbr:{
-        type: String
+    label:{
+        type: String,
+        default: ''
+    },
+    price:{
+        type: Currency,
+        required: true ,
+        min: 0
+    },
+    featured:{
+        type: Boolean,
+        required: false
     }
 },{
     timestamps: true
