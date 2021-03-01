@@ -36,54 +36,79 @@ app.use(session({
   store: new fileStore()
 }))
 
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
 
-function auth(req, res, next) {
-  console.log("************inside auth function************");
-  console.log('req.session',req.session);
-  // console.log("Request Headers \n", req.headers);
-  // console.log("Signed Cookies \n", req.signedCookies);
 
-  //  if (!req.signedCookies.user) {
-    if(!req.session.user){
-    var authHeader = req.headers.authorization;
-    console.log("authHeader \n", authHeader);
-    if (!authHeader) {
-      console.log("inside !authHeader");
-      var err = new Error("You are not authenticated!");
-      res.setHeader("WWW-Authentication", "Basic");
-      err.status = 401;
-      return next(err);
-    }
-    var auth = new Buffer.from(authHeader.split(" ")[1], "base64")
-      .toString()
-      .split(":");
-    var userName = auth[0];
-    var userPassword = auth[1];
+function auth (req, res, next) {
+  console.log(req.session);
 
-    if (userName == "admin" && userPassword == "password") {
-      console.log("user password are correct \n", userName, userPassword);
-      // res.cookie("user", "admin", { signed: true });
-      req.session.user = "admin";
-      console.log("After Set Signed Cookie \n", req.signedCookies);
-
-      next(); // authorized
-    } else {
-      var err = new Error("You are not authenticated!");
-      res.setHeader("WWW-Authenticate", "Basic");
-      err.status = 401;
-      next(err);
-    }
-  } else {
-    // if (req.signedCookies.user === "admin") { //server checking sent cookie with the request
-      if (req.session.user === "admin") { //server checking sent cookie with the request
-      next();
-    } else {
-      var err = new Error("You are not authenticated!");
-      err.status = 401;
-      next(err);
-    }
+if(!req.session.user) {
+    var err = new Error('You are not authenticated!');
+    err.status = 403; //forbidden
+    return next(err);
+}
+else {
+  if (req.session.user === 'authenticated') {
+    next();
+  }
+  else {
+    var err = new Error('You are not authenticated!');
+    err.status = 403; //forbidden
+    return next(err);
   }
 }
+}
+
+
+// function auth(req, res, next) {
+//   console.log("************inside auth function************");
+//   console.log('req.session',req.session);
+//   // console.log("Request Headers \n", req.headers);
+//   // console.log("Signed Cookies \n", req.signedCookies);
+
+//   //  if (!req.signedCookies.user) {
+//     if(!req.session.user){
+//     var authHeader = req.headers.authorization;
+//     console.log("authHeader \n", authHeader);
+//     if (!authHeader) {
+//       console.log("inside !authHeader");
+//       var err = new Error("You are not authenticated!");
+//       res.setHeader("WWW-Authentication", "Basic");
+//       err.status = 401;
+//       return next(err);
+//     }
+//     var auth = new Buffer.from(authHeader.split(" ")[1], "base64")
+//       .toString()
+//       .split(":");
+//     var userName = auth[0];
+//     var userPassword = auth[1];
+
+//     if (userName == "admin" && userPassword == "password") {
+//       console.log("user password are correct \n", userName, userPassword);
+//       // res.cookie("user", "admin", { signed: true });
+//       req.session.user = "admin";
+//       console.log("After Set Signed Cookie \n", req.signedCookies);
+
+//       next(); // authorized
+//     } else {
+//       var err = new Error("You are not authenticated!");
+//       res.setHeader("WWW-Authenticate", "Basic");
+//       err.status = 401;
+//       next(err);
+//     }
+//   } else {
+//     // if (req.signedCookies.user === "admin") { //server checking sent cookie with the request
+//       if (req.session.user === "admin") { //server checking sent cookie with the request
+//       next();
+//     } else {
+//       var err = new Error("You are not authenticated!");
+//       err.status = 401;
+//       next(err);
+//     }
+//   }
+// }
+
 app.use(auth);
 
 // app.use(basicAuth({
@@ -92,11 +117,10 @@ app.use(auth);
 // }));
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
 app.use('/dishes', dishRouter);
 app.use('/promotions', promotionRouter);
 app.use('/leaders', leaderRouter);
+app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
