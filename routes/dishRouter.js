@@ -17,6 +17,8 @@ dishRouter.route('/')
     .then((dishes) => {
         res.statusCode = 200;
         res.setHeader('Content-Type','application/json');
+        
+  console.log("Signed Cookies \n", req.signedCookies);
         res.json(dishes) //send back result to client
     },(err) => next(err))
     .catch((err) => next(err));
