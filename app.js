@@ -27,28 +27,24 @@ app.set("view engine", "jade");
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser('12346789-09876-54321'));
-
-// app.use(session({
-//   name:'session-id',
-//   secret: '12346789-09876-54321',
-//   saveUninitialized: false,
-//   resave:false,
-//   store: new fileStore()
-// }))
+// app.use(cookieParser('12346789-09876-54321'));
+app.use(session({
+  name:'session-id',
+  secret: '12346789-09876-54321',
+  saveUninitialized: false,
+  resave:false,
+  store: new fileStore()
+}))
 
 
 function auth(req, res, next) {
   console.log("************inside auth function************");
   console.log('req.session',req.session);
   // console.log("Request Headers \n", req.headers);
-  console.log("Signed Cookies \n", req.signedCookies);
+  // console.log("Signed Cookies \n", req.signedCookies);
 
-   if (!req.signedCookies.user) {
-    // if(!req.session.user){
-
-      console.log("Inside =>!req.signedCookies.user Cond");
-
+  //  if (!req.signedCookies.user) {
+    if(!req.session.user){
     var authHeader = req.headers.authorization;
     console.log("authHeader \n", authHeader);
     if (!authHeader) {
@@ -66,8 +62,8 @@ function auth(req, res, next) {
 
     if (userName == "admin" && userPassword == "password") {
       console.log("user password are correct \n", userName, userPassword);
-      // req.session.user = "admin";
-      res.cookie("user", "admin", { signed: true });
+      // res.cookie("user", "admin", { signed: true });
+      req.session.user = "admin";
       console.log("After Set Signed Cookie \n", req.signedCookies);
 
       next(); // authorized
@@ -78,8 +74,8 @@ function auth(req, res, next) {
       next(err);
     }
   } else {
-    console.log('ELSEEEEEE  => req.signedCookies.user',req.signedCookies.user);
-    if (req.signedCookies.user === "admin") { //server checking sent cookie with the request
+    // if (req.signedCookies.user === "admin") { //server checking sent cookie with the request
+      if (req.session.user === "admin") { //server checking sent cookie with the request
       next();
     } else {
       var err = new Error("You are not authenticated!");
