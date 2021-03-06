@@ -12,8 +12,11 @@ var promotionRouter = require('./routes/promotionRouter');
 var leaderRouter = require('./routes/leaderRouter');
 const mongoose = require('mongoose');
 const Dishes = require('./models/dishes');
-const url = 'mongodb://localhost:27017/conFusion';
+var config = require('./config');
+const url = config.mongoUrl;
 const connect = mongoose.connect(url);
+var passport = require('passport');
+var authenticate = require('./authenticate');
 
 connect.then((db) => {
   console.log("connected correctly to server");
@@ -28,37 +31,52 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 // app.use(cookieParser('12346789-09876-54321'));
-app.use(session({
-  name:'session-id',
-  secret: '12346789-09876-54321',
-  saveUninitialized: false,
-  resave:false,
-  store: new fileStore()
-}))
+// app.use(session({
+//   name:'session-id',
+//   secret: '12346789-09876-54321',
+//   saveUninitialized: false,
+//   resave:false,
+//   store: new fileStore()
+// }))
+//when you log in here,  
+//a call to the passport authenticate local, 
+//when this is done at the login stage, 
+//the passport authenticate local will automatically 
+//add the user property to the request message. 
+//So, it'll add req.user and then, 
+//the passport session that we have done here 
+//will automatically serialize that user information 
+//and then store it in the session. 
+//So whenever a incoming request comes in
+//from the client side with the session cookie already in place, 
+//this will automatically load the req.user onto the incoming request. 
+//So, that is how the passport session itself is organized
+app.use(passport.initialize());
+// app.use(passport.session());
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
 
-function auth (req, res, next) {
-  console.log(req.session);
-
-if(!req.session.user) {
-    var err = new Error('You are not authenticated!');
-    err.status = 403; //forbidden
-    return next(err);
-}
-else {
-  if (req.session.user === 'authenticated') {
-    next();
-  }
-  else {
-    var err = new Error('You are not authenticated!');
-    err.status = 403; //forbidden
-    return next(err);
-  }
-}
-}
+// function auth(req, res, next) {
+//   console.log(req.session);
+//   if (!req.user) {
+//     // if(!req.session.user) {
+//     var err = new Error("You are not authenticated!");
+//     err.status = 403; //forbidden
+//     return next(err);
+//   } else {
+//     next();
+//     // if (req.session.user === 'authenticated') {
+//     //   next();
+//     // }
+//     // else {
+//     //   var err = new Error('You are not authenticated!');
+//     //   err.status = 403; //forbidden
+//     //   return next(err);
+//     // }
+//   }
+// }
 
 
 // function auth(req, res, next) {
@@ -109,7 +127,7 @@ else {
 //   }
 // }
 
-app.use(auth);
+// app.use(auth);
 
 // app.use(basicAuth({
 //   challenge: true,
@@ -120,7 +138,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/dishes', dishRouter);
 app.use('/promotions', promotionRouter);
 app.use('/leaders', leaderRouter);
-app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
