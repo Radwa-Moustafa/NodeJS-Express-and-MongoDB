@@ -4,15 +4,13 @@ const dishRouter = express.Router();
 const authenticate = require('../authenticate');
 const Dishes = require('../models/dishes');
 dishRouter.use(express.json());
+const cors = require('./cors');
+
 
 //request chaining (chain all methods to dishRouter)
 dishRouter.route('/')
-// .all((req,res,next) => {
-//     res.statusCode = 200;
-//     res.setHeader('Content-Type','text/plain');
-//     next();
-// })
-.get(authenticate.verifyUser,(req,res,next) => {
+.options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
+.get(cors.cors,authenticate.verifyUser,(req,res,next) => {
     Dishes.find({}) //like DAL operation this.GetAll()
     .populate('comments.author')
     .then((dishes) => {
@@ -24,7 +22,7 @@ dishRouter.route('/')
     .catch((err) => next(err));
     //res.end('will send all the dishes to you!');
 })
-.post(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) => {
+.post(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) => {
     Dishes.create(req.body)
     .then((dish) => {
         console.log('Dish Created ', dish);
@@ -36,11 +34,11 @@ dishRouter.route('/')
     // res.end('will add the dish: ' + req.body.name + 
     // ' with details: ' + req.body.description);
 })
-.put(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) => {
+.put(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) => {
     res.statusCode = 403;
     res.end('PUT operation is not suppported on /dishes');
 })
-.delete(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) => {
+.delete(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) => {
     Dishes.remove({})
     .then((result) => {
         console.log('Dish Deleted ', result);
@@ -53,7 +51,7 @@ dishRouter.route('/')
 });
 
 dishRouter.route('/:dishId')
-.get(authenticate.verifyUser,(req,res,next) => {
+.get(cors.cors,authenticate.verifyUser,(req,res,next) => {
     Dishes.findById(req.params.dishId)
     .populate('comments.author')
     .then((dish) => {
@@ -65,11 +63,11 @@ dishRouter.route('/:dishId')
     // res.end('will send details of the dish: ' + req.params.dishId
     // + ' to you!');
 })
-.post(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) => {
+.post(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) => {
     res.statusCode = 403;
     res.end('POST operation is not suppported on /dishes/dishId');
 })
-.put(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) => {
+.put(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) => {
     Dishes.findByIdAndUpdate(req.params.dishId,{$set: req.body},{new:true})
     .then((dish) => {
         console.log('Dish Updated ', dish);
@@ -83,7 +81,7 @@ dishRouter.route('/:dishId')
     // res.end('will update the dish ' + req.params.dishId
     // +' with details: ' + req.body.description);
 })
-.delete(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) => {
+.delete(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) => {
     Dishes.findByIdAndRemove(req.params.dishId)
     .then((dish) => {
         console.log('Dish Deleted ', dish);
@@ -104,7 +102,7 @@ dishRouter.route('/:dishId/comments')
 //     res.setHeader('Content-Type','text/plain');
 //     next();
 // })
-.get(authenticate.verifyUser,(req,res,next) => {
+.get(cors.cors,authenticate.verifyUser,(req,res,next) => {
     Dishes.findById(req.params.dishId) //like DAL operation this.GetAll()
     .populate('comments.author')
     .then((dish) => {
@@ -121,7 +119,7 @@ dishRouter.route('/:dishId/comments')
     .catch((err) => next(err));
     //res.end('will send all the dishes to you!');
 })
-.post(authenticate.verifyUser,(req,res,next) => {
+.post(cors.corsWithOptions,authenticate.verifyUser,(req,res,next) => {
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         if(dish != null){
@@ -147,11 +145,11 @@ dishRouter.route('/:dishId/comments')
     // res.end('will add the dish: ' + req.body.name + 
     // ' with details: ' + req.body.description);
 })
-.put(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) => {
+.put(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) => {
     res.statusCode = 403;
     res.end('PUT operation is not suppported on /dishes/' + req.params.dishId + '/comments');
 })
-.delete(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) => {
+.delete(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) => {
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         if(dish != null){
@@ -176,7 +174,7 @@ dishRouter.route('/:dishId/comments')
 });
 
 dishRouter.route('/:dishId/comments/:commentId')
-.get(authenticate.verifyUser,(req,res,next) => {
+.get(cors.cors,authenticate.verifyUser,(req,res,next) => {
     Dishes.findById(req.params.dishId)
     .populate('comments.author') 
     .then((dish) => {
@@ -198,11 +196,11 @@ dishRouter.route('/:dishId/comments/:commentId')
     // res.end('will send details of the dish: ' + req.params.dishId
     // + ' to you!');
 })
-.post(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) => {
+.post(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) => {
     res.statusCode = 403;
     res.end('POST operation is not suppported on /dishes/' + req.params.dishId + 'comment/' + req.params.commentId);
 })
-.put(authenticate.verifyUser,(req,res,next) => {
+.put(cors.corsWithOptions,authenticate.verifyUser,(req,res,next) => {
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         if(dish != null && dish.comments.id(req.params.commentId) != null){
@@ -248,7 +246,7 @@ dishRouter.route('/:dishId/comments/:commentId')
     // res.end('will update the dish ' + req.params.dishId
     // +' with details: ' + req.body.description);
 })
-.delete(authenticate.verifyUser,(req,res,next) => {
+.delete(cors.corsWithOptions,authenticate.verifyUser,(req,res,next) => {
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         if (dish != null && dish.comments.id(req.params.commentId) != null) {

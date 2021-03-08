@@ -17,12 +17,25 @@ const url = config.mongoUrl;
 const connect = mongoose.connect(url);
 var passport = require('passport');
 var authenticate = require('./authenticate');
+const uploadRouter = require('./routes/uploadRouter');
 
 connect.then((db) => {
   console.log("connected correctly to server");
 });
 
 var app = express();
+
+// Secure traffic only
+app.all('*', (req, res, next) => {
+  if (req.secure) {
+    return next();
+  }
+  else { //307 -> URI has changed to new url with same method .. don't change method
+    res.redirect(307, 'https://' + req.hostname + ':' + app.get('secPort') + req.url);
+  }
+});
+
+
 var basicAuth = require("express-basic-auth");
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -30,6 +43,8 @@ app.set("view engine", "jade");
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use('/imageUpload',uploadRouter);
+
 // app.use(cookieParser('12346789-09876-54321'));
 // app.use(session({
 //   name:'session-id',
