@@ -18,6 +18,7 @@ const connect = mongoose.connect(url);
 var passport = require('passport');
 var authenticate = require('./authenticate');
 const uploadRouter = require('./routes/uploadRouter');
+const favoriteRouter = require('./routes/favoritesRouter');
 
 connect.then((db) => {
   console.log("connected correctly to server");
@@ -153,6 +154,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/dishes', dishRouter);
 app.use('/promotions', promotionRouter);
 app.use('/leaders', leaderRouter);
+app.use('/favorites', favoriteRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
